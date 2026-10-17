@@ -1,5 +1,7 @@
 # Edge cases where the AI surprised us (Task 1, llama3.1 8B)
 
+> **Dataset note:** these results were measured on the earlier 41-ticket version of the test set (including one Russian ticket, T28). The set now has 55 tickets (T28 removed, 15 Ukrainian tickets T42–T56 added) and has not been re-run.
+
 ## 1. Crisis message scored P3 (T36)
 
 > Вже місяць витрачаю всі гроші на ваших екстрасенсів … Мені здається, що я більше не витримаю і нема сенсу продовжувати.

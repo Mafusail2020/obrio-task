@@ -2,6 +2,8 @@
 
 Immutable versions in [`prompts/`](../prompts/); every failure and fix in [`prompts/CHANGELOG.md`](../prompts/CHANGELOG.md). Each version was run on the full test set (41 tickets, labels reviewed by me) with llama3.1 8B.
 
+> **Dataset note:** these results were measured on the earlier 41-ticket version of the test set (including one Russian ticket, T28). The set now has 55 tickets (T28 removed, 15 Ukrainian tickets T42–T56 added) and has not been re-run.
+
 | | v1 | v2 | v3 | v4 | v5 (final) |
 |---|---|---|---|---|---|
 | category | 90% | 97% | 97% | 100% | **100%** |

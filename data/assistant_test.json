@@ -290,26 +290,6 @@
       "label_status": "draft"
     },
     {
-      "id": "A14",
-      "source_ticket": "T28",
-      "text": "Удалите, пожалуйста, мой аккаунт и все мои данные. Больше не хочу пользоваться приложением.",
-      "channel_override": null,
-      "expected": {
-        "kb_any": [
-          "policy-data-deletion"
-        ],
-        "kb_forbidden": [],
-        "gate": [
-          "red"
-        ],
-        "drafts": true,
-        "language": "ru",
-        "no_commitments": false
-      },
-      "notes": "",
-      "label_status": "draft"
-    },
-    {
       "id": "A15",
       "source_ticket": "T30",
       "text": "How does the compatibility report work? Do I need my partner's exact birth time?",
@@ -431,6 +411,26 @@
       },
       "notes": "Vague ticket: drafts should ask for details.",
       "label_status": "draft"
+    },
+    {
+      "id": "A21",
+      "source_ticket": "T51",
+      "text": "Видаліть, будь ласка, мій акаунт і всі мої дані. Більше не хочу користуватися застосунком.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "policy-data-deletion"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "red"
+        ],
+        "drafts": true,
+        "language": "uk",
+        "no_commitments": false
+      },
+      "notes": "Ukrainian account deletion; replaces the former Russian A14.",
+      "label_status": "reviewed"
     }
   ]
 }

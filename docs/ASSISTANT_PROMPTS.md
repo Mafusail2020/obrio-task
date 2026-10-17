@@ -2,6 +2,8 @@
 
 Immutable versions in [`prompts/assistant/`](../prompts/assistant/); full log in [`CHANGELOG.md`](../prompts/assistant/CHANGELOG.md); 20-ticket test set [`data/assistant_test.json`](../data/assistant_test.json).
 
+> **Dataset note:** results were measured on the earlier version of the 20-ticket set. The Russian ticket A14 has since been replaced by a Ukrainian one (A21); not re-run. The A14 write-up below is kept as a historical example.
+
 | | v1 | v2 | v3 (final) |
 |---|---|---|---|
 | Model | llama3.1 | llama3.1 | llama3.1 · gemma3:12b |

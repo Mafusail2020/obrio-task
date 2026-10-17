@@ -2,6 +2,8 @@
 
 Same prompt (v5), pipeline and 41 tickets. **Pass** = category, priority, needs_human and required flags all right, and no false flag. Regenerate: `python -m evaluation.report compare --prompt v5`.
 
+> **Dataset note:** these results were measured on the earlier 41-ticket version of the test set (including one Russian ticket, T28). The set now has 55 tickets (T28 removed, 15 Ukrainian tickets T42–T56 added) and has not been re-run.
+
 | Model | Pass | Category | Sub-intent | Priority | needs_human | Req. flags | False flags | LLM failures | Latency avg / p95 | Tokens in / out |
 |---|---|---|---|---|---|---|---|---|---|---|
 | **gemma3:12b** | **39/41** | 100% | 100% | 98% | 98% | 5/5 | 1 | 0 | 22.8 / 28.2 s | 2108 / 206 |

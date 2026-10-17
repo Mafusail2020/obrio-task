@@ -23,7 +23,7 @@ ollama pull llama3.1          # for local runs
 
 ```bash
 .venv/bin/streamlit run app.py                                            # UI: classify, evaluate, review queue
-.venv/bin/python -m evaluation.run_eval --provider ollama --prompt v5     # eval on 41 test tickets
+.venv/bin/python -m evaluation.run_eval --provider ollama --prompt v5     # eval on the 55 test tickets
 .venv/bin/python -m evaluation.run_eval --provider claude --ids T36,T39   # subset on Claude
 .venv/bin/python -m pytest -q                                             # unit tests (no LLM needed)
 .venv/bin/python -m evaluation.report tickets --prompt v5                 # regenerate docs/EVAL_REPORT.md
@@ -41,7 +41,7 @@ ollama pull llama3.1          # for local runs
 | `classifier/router.py` | Routing policy table |
 | `classifier/review_queue.py` | Human-in-the-loop queue |
 | `prompts/vN.md` | Immutable prompt versions; see [prompts/CHANGELOG.md](prompts/CHANGELOG.md) |
-| `data/test_tickets.json` | 41 synthetic tickets with reviewed expected labels |
+| `data/test_tickets.json` | 55 synthetic tickets with reviewed expected labels (17 Ukrainian, plus German and Spanish) |
 | `evaluation/` | Eval runner, scoring, saved results per prompt/model |
 | `docs/decisions.md` | Which decisions were mine and which were AI-proposed |
 
@@ -59,7 +59,7 @@ ollama pull llama3.1          # for local runs
 | [docs/COST_AND_CACHING.md](docs/COST_AND_CACHING.md) | Cost per ticket, 10k/month forecast, optimisations, what to cache and why |
 | [docs/decisions.md](docs/decisions.md) | My decisions vs AI proposals |
 
-Final eval (prompt v5, llama3.1 8B, 41 tickets): category 100%, sub-intent 97%, needs_human 100%, priority 93% (all misses over-prioritised), all risk flags caught, no false flags.
+Final eval (prompt v5, llama3.1 8B, on the earlier 41-ticket version of the set; not yet re-run on the current 55): category 100%, sub-intent 97%, needs_human 100%, priority 93% (all misses over-prioritised), all risk flags caught, no false flags.
 
 ---
 
