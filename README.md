@@ -75,6 +75,7 @@ ticket → Task 1 classifier → retrieval (sub-intent policies + embeddings on 
 ```bash
 .venv/bin/streamlit run app.py                                                      # "Reply assistant" tab
 .venv/bin/python -m evaluation.run_assistant_eval --model gemma3:12b --prompt v3 --report   # 20-ticket eval
+.venv/bin/python -m evaluation.judge evaluation/results/assistant/<run>.json --report      # offline LLM judge
 ```
 
 Needs the Ollama embedding model: `ollama pull qwen3-embedding`.
@@ -92,5 +93,6 @@ Needs the Ollama embedding model: `ollama pull qwen3-embedding`.
 | [docs/ASSISTANT_HUMAN_JUDGMENT.md](docs/ASSISTANT_HUMAN_JUDGMENT.md) | Scenarios where the agent must decide, and how the UI marks them |
 | [docs/ASSISTANT_PROMPTS.md](docs/ASSISTANT_PROMPTS.md) | Prompt evolution, how tones were achieved, what failed, one bad output and its fix |
 | [docs/ASSISTANT_EVAL_REPORT.md](docs/ASSISTANT_EVAL_REPORT.md) | Per-ticket results table (generated) |
+| [docs/ASSISTANT_JUDGE_REPORT.md](docs/ASSISTANT_JUDGE_REPORT.md) | Offline LLM-judge ratings of every draft (generated) |
 
-Final eval (prompt v3, 20 tickets): llama3.1 20/20 and gemma3:12b 19/20 automatic checks; retrieval 20/20 on both. gemma3:12b chosen for drafting because of clearly better Ukrainian/Russian.
+Final eval (prompt v3, 20 tickets): llama3.1 20/20 and gemma3:12b 19/20 automatic checks; retrieval 20/20 on both. LLM judge: 84% of gemma3:12b drafts rated appropriate (0 inappropriate) vs 68% for llama3.1. gemma3:12b chosen for drafting because of clearly better Ukrainian/Russian.

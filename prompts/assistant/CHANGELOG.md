@@ -76,3 +76,17 @@ Validator problems found (my checks, not the prompt):
 The prompt stays at v3; both models were re-run with the corrected validator.
 
 **Final result (prompt v3, corrected validator):** llama3.1 8B **20/20**, gemma3:12b **19/20** (A20: the gate depends on gemma's own classification of a vague ticket). Retrieval 20/20 and language 19/19 on both; llama's A14 needed a retry (URL allowlist), and no invented links appear in either model's final drafts. Generation: llama ~78 s / 875 output tokens, gemma ~84 s / 652. **gemma3:12b chosen for drafting** because of clearly better Ukrainian/Russian at similar latency; see docs/ASSISTANT_ARCHITECTURE.md.
+
+## LLM judge on the final v3 drafts (offline)
+
+gemma3:12b judged 57 drafts per model with the appropriate / too general / inappropriate rubric:
+- llama3.1: 39 / 14 / 4.
+- gemma3:12b: 48 / 9 / 0 (gemma judging its own drafts).
+
+Spot-checking the flags against the drafts: correct catches were A18, A05, A01 and A14's leftover English word; wrong flags were A14 grounding, A15's URL and A17's conditional explanation.
+
+Two real problems the judge found are **left as known issues** (decision: document, don't iterate further):
+- A18: internal procedure steps ("check the admin panel, click Resend") turned into customer instructions.
+- A05: refund eligibility asserted although it depends on unverified usage.
+
+Both are covered at runtime by the agent review and the 🔴 gate, and are most likely model-capability limits: gemma3:12b already avoided A18, and a stronger model (Claude Sonnet 5.5 recommended for drafting) is expected to remove them (not yet verified). Details in docs/ASSISTANT_ARCHITECTURE.md → Known issues.

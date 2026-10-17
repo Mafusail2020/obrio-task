@@ -1,0 +1,715 @@
+{
+  "source": "v3_ollama_llama3.1_20261017T143524.json",
+  "generator": {
+    "timestamp": "2026-10-17T14:35:24",
+    "provider": "ollama",
+    "model": "llama3.1",
+    "prompt_version": "v3",
+    "embedder": "qwen3-embedding",
+    "n_tickets": 20,
+    "wall_time_s": 2081.9
+  },
+  "judge_model": "ollama/gemma3:12b",
+  "judge_prompt": "v1",
+  "summary": {
+    "drafts_judged": 57,
+    "ratings": {
+      "too_general": 14,
+      "appropriate": 39,
+      "inappropriate": 4
+    },
+    "ratings_by_tone": {
+      "formal": {
+        "too_general": 4,
+        "appropriate": 14,
+        "inappropriate": 1
+      },
+      "empathetic": {
+        "too_general": 5,
+        "appropriate": 13,
+        "inappropriate": 1
+      },
+      "short": {
+        "appropriate": 12,
+        "too_general": 5,
+        "inappropriate": 2
+      }
+    },
+    "grounded": 44,
+    "tone_ok": 57,
+    "translation_ok": 55,
+    "judge_failures": 0
+  },
+  "tickets": [
+    {
+      "id": "A01",
+      "text": "I cancelled my subscription on March 3rd and you still charged me $29.99 on March 10th. Please refund this charge.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [
+            "According to our refund policy, we will investigate this matter further."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft promises an investigation and resolution without confirming if a refund is possible based on the billing channel."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [
+            "We're here to help you get a refund."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft promises a refund without confirming if a refund is possible based on the billing channel."
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft directly asks for the necessary information to determine the billing channel."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A02",
+      "text": "I cancelled my subscription on March 3rd and you still charged me $29.99 on March 10th. Please refund this charge.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A03",
+      "text": "How do I cancel my subscription? I subscribed through the App Store on my iPhone.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A04",
+      "text": "Hello, I accidentally bought the yearly plan on Google Play yesterday, I meant to pick the monthly one. Can I get a refund?",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Customer requests a refund for a Google Play purchase."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Customer requests a refund for a Google Play purchase."
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Customer requests a refund for a Google Play purchase."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A05",
+      "text": "Hallo, ich habe gestern aus Versehen ein Jahresabo über eure Webseite gekauft (59,99 €). Ich möchte bitte mein Geld zurück.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [
+            "The customer used at most 3 paid readings/reports in that period."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft assumes the customer used at most 3 paid readings/reports, which is not known."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [
+            "The customer used at most 3 paid readings/reports in that period."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft assumes the customer used at most 3 paid readings/reports, which is not known."
+        },
+        {
+          "tone": "short",
+          "rating": "too_general",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft doesn't address the refund request or check eligibility."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A06",
+      "text": "The psychic Luna took 3-4 minutes to answer every message while my credits were running down. I spent 30 credits and got maybe 5 sentences. I want my credits back.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A07",
+      "text": "El asesor tardaba muchísimo en responder y se me acabaron los créditos sin obtener ninguna respuesta clara. Quiero que me devuelvan mis créditos.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Acknowledges the customer's request and explains the credit restoration process."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Acknowledges the customer's frustration and offers a solution."
+        },
+        {
+          "tone": "short",
+          "rating": "too_general",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Lacks context and doesn't explain *why* credits are being restored."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A08",
+      "text": "An advisor asked me to send him money directly via PayPal for a special 'curse removal' ritual and gave me his WhatsApp number. Is this allowed??",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A09",
+      "text": "The app crashes every time I open it since the last update. iPhone 13, iOS 18.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A10",
+      "text": "Додаток вилітає щоразу, коли я відкриваю чат з астрологом. Перевстановлювала двічі — не допомогло. Samsung A52.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The app crashes when opening chats with astrologers."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The app crashes when opening chats with astrologers."
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The app crashes when opening chats with astrologers."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A11",
+      "text": "The 'My Plan' screen is just a white page, it never loads. I want to check when my subscription renews.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft provides troubleshooting steps and directs the customer to an article for renewal date information."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft acknowledges the customer's frustration and offers troubleshooting steps, while also offering to guide them on checking their renewal date."
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft provides concise troubleshooting steps and directs the customer to an article for renewal date information."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A12",
+      "text": "How do I turn off the daily horoscope notifications? I get 5 a day.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A13",
+      "text": "I got a new phone and now I can't log in. The app says 'account not found' when I use Google sign-in. I have 120 credits on that account!",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft correctly suggests troubleshooting steps for the 'account not found' error."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "too_general",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft acknowledges frustration but doesn't offer a clear path to resolution beyond the standard troubleshooting steps."
+        },
+        {
+          "tone": "short",
+          "rating": "too_general",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft is too brief and doesn't offer a clear path to resolution; it lacks a call to action or offer of further assistance."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A14",
+      "text": "Удалите, пожалуйста, мой аккаунт и все мои данные. Больше не хочу пользоваться приложением.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [
+            "According to our policy, all data will be permanently erased, including readings, chat history, credits, and birth data."
+          ],
+          "tone_ok": true,
+          "translation_ok": false,
+          "issue": "The draft doesn't acknowledge the customer's request to confirm deletion, and includes unsupported claims about data deletion."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [
+            "Хочу заверить вас, что все ваши данные будут permanently удалены, включая записи, историю чата, кредиты и данные о дне рождения."
+          ],
+          "tone_ok": true,
+          "translation_ok": false,
+          "issue": "The draft doesn't acknowledge the customer's request to confirm deletion, and includes unsupported claims about data deletion."
+        },
+        {
+          "tone": "short",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft doesn't acknowledge the customer's request to confirm deletion."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A15",
+      "text": "How does the compatibility report work? Do I need my partner's exact birth time?",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "short",
+          "rating": "too_general",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The link is not present in the KB."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A17",
+      "text": "You've charged me twice for the same month. If this isn't refunded in 48 hours I'm filing a chargeback with my bank.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "inappropriate",
+          "grounded": false,
+          "unsupported_claims": [
+            "We cannot issue refunds for purchases made through the App Store or Google Play, as these are billed by Apple or Google, not by Nebula."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft incorrectly states Nebula cannot refund App Store/Google Play purchases without first determining the billing channel."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "inappropriate",
+          "grounded": false,
+          "unsupported_claims": [
+            "We'll review the charge and apply our refund policy accordingly. If you paid for your subscription through the Nebula website, we'll review the charge and apply our refund policy accordingly. If you paid through the App Store or Google Play, you'll need to contact the store directly to request a refund."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft incorrectly states Nebula cannot refund App Store/Google Play purchases without first determining the billing channel."
+        },
+        {
+          "tone": "short",
+          "rating": "inappropriate",
+          "grounded": false,
+          "unsupported_claims": [
+            "If you paid through the App Store or Google Play, contact the store directly to request a refund."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft incorrectly states Nebula cannot refund App Store/Google Play purchases without first determining the billing channel."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A18",
+      "text": "I paid for the soulmate sketch 5 days ago (order #NB-58213) and still haven't received anything. The app just keeps offering me to chat with a psychic instead.",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [
+            "You have reported that you have not received the purchased content, despite being offered a different service instead."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft instructs the customer to check the admin panel, which they cannot do."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "too_general",
+          "grounded": false,
+          "unsupported_claims": [
+            "You're right, you should have received it by now"
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft instructs the customer to check the admin panel, which they cannot do."
+        },
+        {
+          "tone": "short",
+          "rating": "inappropriate",
+          "grounded": false,
+          "unsupported_claims": [
+            "Please check your order in the admin panel to confirm the status of your purchase."
+          ],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "The draft instructs the customer to check the admin panel, which they cannot do."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A19",
+      "text": "I bought the 50 credits pack and the offer said I'd get 10 bonus credits, but I only got 50. Where are my bonus credits?",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Customer reports missing bonus credits from a credit pack purchase."
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Customer reports missing bonus credits from a credit pack purchase."
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": "Customer reports missing bonus credits from a credit pack purchase."
+        }
+      ],
+      "error": null
+    },
+    {
+      "id": "A20",
+      "text": "hi it doesnt work",
+      "verdicts": [
+        {
+          "tone": "formal",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "empathetic",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        },
+        {
+          "tone": "short",
+          "rating": "appropriate",
+          "grounded": true,
+          "unsupported_claims": [],
+          "tone_ok": true,
+          "translation_ok": true,
+          "issue": ""
+        }
+      ],
+      "error": null
+    }
+  ]
+}

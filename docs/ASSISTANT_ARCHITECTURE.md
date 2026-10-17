@@ -75,6 +75,21 @@ Final prompt: [`prompts/assistant/v3.md`](../prompts/assistant/v3.md). Its histo
 
 All three tones come from **one call** (the user's choice: cheaper and faster than three calls). The model sees all three at once, which also helps it make them different. The validator measures distinctness (word overlap ≤ 70%): 19/19 on both models with v3.
 
+## Conscious trade-offs (time and tools)
+
+| Trade-off | Why | What production would do |
+|---|---|---|
+| **Local models (llama3.1, gemma3:12b) instead of Claude** | No API key in the dev environment; free unlimited reruns for prompt iteration | Run the same eval on Claude (Haiku for classification, Sonnet for drafting) and switch via config |
+| **Synthetic KB of 29 articles** | Nebula's internal KB isn't public | Index the real KB; keep the same front-matter (type, audience, sub_intents, channels) |
+| **Brute-force cosine search, no vector DB, no reranker, no BM25** | 29 short articles: instant, and no measurable gain at this size | Vector store + reranker + hybrid search for hundreds of articles |
+| **One LLM call for all three tones** | 3× cheaper and faster than three calls; the model sees all tones at once | Keep, unless the tones collapse on a new model (measured by the validator) |
+| **Deterministic validator instead of an LLM critic at runtime** | A critic call would double latency and cost; the agent reviews every draft anyway | Keep; maybe add a critic only for 🔴 tickets |
+| **LLM judge runs on the same small local model class** | Only local models available; judge reliability measured by spot-checks, not a labelled sample | Stronger judge (Claude Sonnet) + a human-labelled sample to measure agreement |
+| **20-ticket test set, labels drafted by AI and reviewed by me** | Time | Real historical tickets with agent replies as references |
+| **Single message, no conversation history or customer account data** | Out of scope for the prototype | Pass thread history and account data (plan, billing channel, purchases) from the helpdesk. That would also make the channel override and many 🔴 checks automatic |
+| **Streamlit page instead of a helpdesk integration** | Fastest way to a working UI | Zendesk/Intercom sidebar app calling the same `assist()` function |
+| **Known issues left open** (A18 internal steps in a reply, A05 asserted eligibility) | Decision to document rather than iterate; covered by the 🔴 gate and agent review | Re-evaluate on a stronger model first; add prompt rules only if they persist |
+
 ## Deterministic layers around the LLM
 
 Several failures were fixed in code instead of in the prompt, because a rule that can be enforced shouldn't depend on the model following an instruction:
@@ -98,11 +113,43 @@ Same prompt (v3), pipeline, embeddings and 20 tickets. The model does both steps
 | Ukrainian / Russian quality (manual) | Understandable but with non-words and calques ("заворушенням", "проверить вашу идентичность") | **Natural, correct terms** |
 | Hallucinations (manual) | Invented a URL (`help.nebula.com/article/policy-data-deletion`); now caught by the URL allowlist and retried | None found |
 | Implicit promises when the channel is unknown | "we're here to help you get a refund" | Neutral |
+| **LLM judge** (gemma3:12b, 57 drafts each) | 39 appropriate · 14 too general · **4 inappropriate** | **48 appropriate** · 9 too general · **0 inappropriate** (self-judged: possible bias) |
 
 **Choice:**
 - **Local / development: gemma3:12b for drafting.** The automatic checks are close, but the drafts are customer-facing text in the customer's language, and gemma's translations are clearly better at similar latency.
 - **Production (recommended): Claude.** Haiku 5.5 for classification (Task 1); **Sonnet 5.5 for drafting**, since drafting needs more language quality than extraction. Not measured yet: no API key in the dev environment. Next step: run `--provider claude` on the same test set.
 - A split setup (small model classifies, stronger model drafts) is supported by the architecture (two independent calls), but not yet wired into the UI.
+
+## Quality evaluation: automatic checks + LLM judge + manual reading
+
+Three layers, because each misses things the others catch:
+
+| Layer | What it measures | Where |
+|---|---|---|
+| Automatic checks (eval runner) | Retrieval hit, wrong-channel articles, gate level, three tones present, language, validator errors, no policy promises when the channel is unknown, tone distinctness, length | [ASSISTANT_EVAL_REPORT.md](ASSISTANT_EVAL_REPORT.md) |
+| **LLM judge** (offline only, [`evaluation/judge.py`](../evaluation/judge.py), prompt [`prompts/judge/v1.md`](../prompts/judge/v1.md)) | Per draft: appropriate / too general / inappropriate (the rubric from the agentic-RAG copilot paper), grounded in KB, tone fit, translation faithful | [ASSISTANT_JUDGE_REPORT.md](ASSISTANT_JUDGE_REPORT.md) |
+| Manual reading | Translation quality, invented facts, tone | [ASSISTANT_PROMPTS.md](ASSISTANT_PROMPTS.md) |
+
+**How reliable is the judge?** I checked its flagged verdicts against the actual drafts (llama3.1 run):
+- **Correct catches:**
+  - A18: internal procedure turned into customer instructions (see known issues below), missed by both the validator and my manual reading.
+  - A05: drafts assert refund eligibility.
+  - A01: implied refund promise.
+  - A14: an English word left in the Russian text.
+- **Wrong:**
+  - A14: "data permanently erased" marked unsupported; the KB says exactly that.
+  - A15: a correct retrieved URL marked as "not in KB".
+  - A17: a correct conditional explanation of both payment paths marked inappropriate.
+- Several "too general" verdicts on short drafts are debatable: short drafts are brief by design.
+
+So the judge is **a good pointer to where to look and a fair relative comparison between models, not an absolute score.** It runs on the same small local model class as the generator. A stronger judge (e.g. Claude Sonnet) and a human-labelled sample to measure judge agreement would be the next steps.
+
+## Known issues (found by the judge, not fixed)
+
+Both are most likely model-capability limits that a stronger drafting model (the recommended Claude Sonnet 5.5 for production) would largely remove. There's already a hint: the stronger local model (gemma3:12b) didn't make the A18 mistake at all, and had fewer unsupported claims overall (52/57 grounded vs 44/57). This isn't verified on Claude yet; re-running the eval and the judge with `--provider claude` would confirm it.
+
+1. **Internal procedures leaking into customer instructions (A18, llama3.1).** The short draft told the customer to "check your order in the admin panel… click Resend": steps from the internal `sop-missing-content` procedure that only agents can perform. The validator's verbatim-overlap check didn't fire because the wording was paraphrased. Mitigation in place: the agent reviews every draft. Possible fix: a prompt rule "procedures describe what the *agent* does; never instruct the customer to perform agent steps", plus a validator term list (admin panel, team lead, Trust & Safety…).
+2. **Refund eligibility asserted instead of conditional (A05, both models).** For an accidental website purchase, drafts said "you're eligible for a full refund", but eligibility depends on usage (≤ 3 paid readings) that nobody has checked. Mitigation in place: the ticket is 🔴 *refund decision*, copy is locked until the agent confirms, and the promise is flagged on the draft. Possible fix: "when eligibility depends on facts the agent must verify, phrase it conditionally and list the facts in `missing_info`".
 
 ## Failure handling
 
