@@ -1,112 +1,81 @@
-# Architecture
-
-## Overview
+# Architecture (Task 1: classifier)
 
 ```
-ticket text
-  │
-  ▼
-1. preprocess      normalise whitespace, mask PII (emails, Luhn-valid cards, +phones), length cap
-  │
-  ▼
-2. guardrails      multilingual keyword net → risk flags; crisis / legal / "talk to a human" → redirect_to_human
-  │
-  ▼
-3. LLM extraction  prompt vN + Pydantic schema → structured FACTS (validated, 1 retry on invalid output)
-  │                category derived from sub-intent in code; language from a detector
-  ▼
-4. router          deterministic policy table → priority, queue, next-step action, needs_human, agent note
-  │
-  ▼
-TriageResult ──► Streamlit UI · eval runner · human review queue
+ticket → 1. preprocess   mask PII (emails, Luhn-valid cards, +phones), length cap
+       → 2. guardrails   multilingual keywords → risk flags; crisis / legal / "talk to a human" → redirect_to_human
+       → 3. LLM          prompt vN + Pydantic schema → FACTS (1 retry on invalid output); category derived from
+                         sub-intent in code; language from langdetect
+       → 4. router       policy table → priority, queue, next step, needs_human, agent note
+       → UI · eval runner · review queue
 ```
 
-The core split: **the LLM extracts facts, code makes decisions.** The LLM answers "what is this ticket about, what does the customer want, how do they feel, is there risk". It never decides priority, queue or escalation. Those come from a policy table in [`classifier/router.py`](../classifier/router.py) that a support lead can read and change without touching a prompt.
+**The LLM extracts facts; code decides.** Priority, queue and escalation come from [`classifier/router.py`](../classifier/router.py), the same pattern as Zendesk Intelligent Triage. Benefits:
+- the same facts always give the same priority
+- every decision records the rule that fired
+- policy changes need no prompt re-tune
+- fact extraction is narrow enough for small models
 
-Why:
-- **Consistent:** same facts → same priority, every time.
-- **Auditable:** every decision records the rule that fired (`rule_id`) and the modifiers applied.
-- **Changeable:** a policy change (e.g. "refunds over $50 → senior queue") is a code change with a unit test, not a prompt re-tune.
-- **Cheaper:** fact extraction is a narrow task, so small models handle it (an 8B local model in all the evals here).
-
-This follows the pattern used by Zendesk Intelligent Triage: classification is an input layer, and deterministic triggers do the routing.
-
-## Model / tool choice
+## Model choice
 
 | Use | Model | Why |
 |---|---|---|
-| Development, evals | **Ollama `llama3.1` 8B** (local) | Free, offline, unlimited reruns while iterating prompts; no customer data leaves the machine. If prompts work on an 8B model, they have headroom on stronger ones. |
-| Production target | **Claude Haiku 5.5** via the Anthropic API | Cheapest current Claude ($0.10 / $0.50 per 1M tokens); **structured outputs** (`messages.parse` with the Pydantic schema) guarantee schema-valid JSON; strong multilingual understanding. Run with `effort: low`, since classification doesn't benefit from deep reasoning. |
+| Development, evals | Ollama **llama3.1 8B** | Free unlimited reruns; data stays local; a prompt that works on 8B has headroom on stronger models |
+| Production (recommended) | **Claude Haiku 5.5**, `effort: low` | $0.10 / $0.50 per 1M tokens; structured outputs guarantee valid JSON; strong multilingual support |
 
-Both sit behind one interface, `LLMClient.generate_structured(system, user, schema)` ([`classifier/llm/`](../classifier/llm/)). Switching is one setting (`LLM_PROVIDER=ollama|claude`) or a dropdown in the UI. A `MockClient` runs the whole pipeline in unit tests without any model.
+Both run behind `LLMClient.generate_structured()` ([`classifier/llm/`](../classifier/llm/)). You switch with `LLM_PROVIDER` or a dropdown in the UI, and a `MockClient` covers the tests. Comparison of 4 models: [MODEL_COMPARISON.md](MODEL_COMPARISON.md). Claude isn't measured yet (no API key).
 
-Rough cost at production scale: ~1.9k input + ~0.2k output tokens per ticket on Haiku 5.5 ≈ $0.0003 per ticket, about **$3 per 10,000 tickets** (before thinking tokens; not yet measured).
+## Prompt structure ([`prompts/v5.md`](../prompts/v5.md), history in [PROMPT_EVOLUTION.md](PROMPT_EVOLUTION.md))
 
-All eval numbers in this repo are from the local 8B model. A Claude run hasn't been done yet (no API key in the dev environment).
+1. Product context (what Nebula sells, the 3 billing channels); "you do not decide priority or routing".
+2. Injection defence: the ticket sits in `<ticket>` tags and is data, never instructions.
+3. One-line definition per sub-intent; "classify the problem, not the tone".
+4. Multi-intent rule: a refund demand is usually the *goal*, not a second intent.
+5. Definitions for goal, sentiment and each flag. Crisis is recall-biased: any language, indirect signs, "when unsure, include it".
+6. Field rules: `reasoning` first, billing channel only when explicit, English summary.
+7. Boundary tests, e.g. "did the customer choose this purchase?" → `refund_request`, otherwise `unexpected_charge`.
+8. 9 few-shot examples, written new rather than copied from the test set.
 
-## Prompt structure
+The output schema uses closed enums for every label.
 
-Final prompt: [`prompts/v5.md`](../prompts/v5.md). Its history is in [`PROMPT_EVOLUTION.md`](PROMPT_EVOLUTION.md).
+## Categories
 
-1. **Role and product context:** what Nebula sells, the three billing channels.
-2. **Scope limit:** "You do not decide priority or routing."
-3. **Injection defence:** the ticket is inside `<ticket>` tags and is data; instructions inside it are ignored.
-4. **Taxonomy with one-line definitions** for every sub-intent, plus "classify by the problem, not the tone".
-5. **Multi-intent rules:** separate intents only for genuinely different problems; a refund demand is usually the *goal*, not a second intent.
-6. **Definitions** for goal, sentiment scale and each risk flag. The crisis flag is recall-biased: "any language, indirect signs, when unsure include it".
-7. **Field rules:** `reasoning` first, billing channel only when explicit, English summary.
-8. **Boundary tests:** e.g. "did the customer choose to make this purchase?" separates `refund_request` from `unexpected_charge`.
-9. **Nine few-shot examples**, newly written (never copied from the test set), each covering a known boundary.
+Built from real complaints (Trustpilot and Apple Community reviews of Nebula, Kasamba, Keen, Purple Garden), not from guessing the org chart.
 
-The output schema ([`classifier/schema.py`](../classifier/schema.py)) is passed to the model as JSON schema, with closed enums for every label. `reasoning` is the first field, so the model explains before it labels.
-
-## Categories and the logic behind them
-
-The taxonomy was **built from real complaints, not from guessing Obrio's org chart**: Trustpilot and Apple Community reviews of Nebula, plus similar apps (Kasamba, Keen, Purple Garden).
-
-| Category | Sub-intents | Real-world source |
+| Category | Sub-intents | Source complaint |
 |---|---|---|
-| `billing_subscription` | unexpected_charge, cancellation, refund_request, missing_credits, paid_content_not_delivered, payment_failed | #1 complaint: $1 teaser → ~$42 subscription; "cancelled twice, still charged"; missing bonus credits; undelivered "soulmate sketch" |
-| `advisor_complaint` | reading_quality, slow_replies, suspected_bot, rude_or_misconduct | Slow replies "burning credits", suspicion of AI bots posing as psychics |
-| `technical_issue` | crash_or_bug, feature_not_loading, notifications | "My Plan screen won't load" |
-| `account_privacy` | login_access, change_email, delete_account_or_data | Access problems; GDPR deletion (legal deadline) |
-| `general_other` | product_question, feedback, spam_or_unclear | Long tail; vague tickets |
+| `billing_subscription` | unexpected_charge, cancellation, refund_request, missing_credits, paid_content_not_delivered, payment_failed | $1 teaser → ~$42 subscription; "cancelled twice, still charged" |
+| `advisor_complaint` | reading_quality, slow_replies, suspected_bot, rude_or_misconduct | Slow replies "burning credits"; AI bots posing as psychics |
+| `technical_issue` | crash_or_bug, feature_not_loading, notifications | "My Plan won't load" |
+| `account_privacy` | login_access, change_email, delete_account_or_data | Access, GDPR deadline |
+| `general_other` | product_question, feedback, spam_or_unclear | Long tail |
 
-Design rules:
-- **Five categories, two levels** (category → sub-intent, like Zendesk's hierarchy). Few enough to stay mutually exclusive; specific enough for routing.
-- **Refund sits inside Billing, not on its own.** Most "refund" tickets are really "unexpected charge" or "can't cancel"; a separate category would blur boundaries. A credits refund for a bad advisor session belongs to `advisor_complaint`, because the cause decides who handles it.
-- **Risk is a set of flags, not a category:** `self_harm_or_crisis`, `legal_or_chargeback_threat`, `scam_accusation`, `aggressive_tone`. A billing ticket can carry a chargeback threat; a reading complaint can hide a crisis.
-- **Multi-label:** `intents[]`, primary first ("cancel *and* refund", "app crashed *and* advisor ignored me").
-- **What they meant, not what they said:** `customer_goal` (refund / cancel / fix_issue / get_info / complain_only / account_change). "Your app is a scam!!!" is a refund request.
-- **Entities:** billing channel, amount, advisor, transaction id, date. The billing channel changes the next step: App Store / Google Play refunds must go through the store.
+- **5 categories × 2 levels:** few enough to stay mutually exclusive, specific enough to route.
+- **Refund sits inside Billing:** most "refund" tickets are really "unexpected charge" or "can't cancel". A credit refund for a bad session goes under `advisor_complaint`, because the cause decides who handles it.
+- **Risk is flags, not a category:** `self_harm_or_crisis`, `legal_or_chargeback_threat`, `scam_accusation`, `aggressive_tone`. A billing ticket can carry a chargeback threat.
+- **Multi-label `intents[]`** (primary first), **`customer_goal`** (what the customer meant, not what they said), and **entities.** The billing channel changes the next step: store refunds go through Apple or Google.
 
-## Routing policy
+## Routing
 
-1. **Hard rules (first match wins):** crisis → P1 crisis queue; legal/chargeback → P1 senior billing; LLM failure → P2 manual review.
-2. **Base route per sub-intent** (priority, queue, action, human/automatable), with store variants: App Store / Google Play cancellation or refund → automated store instructions.
-3. **Modifiers:**
-   - a secondary intent in a *different* category can raise priority
-   - low confidence → human
-   - scam accusation or angry customer → +1 priority (capped at P2) and human
-   - guardrail `redirect_to_human` → human
-4. **Agent note:** action hint, English summary, all intents, extracted facts, "reply in Ukrainian", "billing channel unknown: ask the customer".
+1. **Hard rules:** crisis → P1 crisis queue; legal/chargeback → P1 senior billing; LLM failure → P2 manual review.
+2. **Base route per sub-intent**, with store variants: App Store / Google Play cancellation or refund → automated store instructions.
+3. **Modifiers:** a secondary intent in a *different* category can raise priority; low confidence → human; scam or angry → +1 priority (cap P2) and human; `redirect_to_human` → human.
+4. **Agent note:** summary, intents, facts, "reply in Ukrainian", "channel unknown: ask the customer".
 
-"Next step" means an **internal action for the support team** (e.g. `send_store_refund_instructions`, `investigate_advisor`), not a reply to the customer. Generated replies could promise refunds that policy doesn't allow.
+"Next step" is an internal action for the support team (e.g. `send_store_refund_instructions`), not a customer reply.
 
-## Where the system can fail, and mitigations
+## Failure modes and mitigations
 
-| Failure mode | Seen in evals | Mitigation |
+| Failure | Seen | Mitigation |
 |---|---|---|
-| **Missed crisis** in another language with no obvious keywords | T36 (Ukrainian), v1 | Recall-biased crisis definition in the prompt + multilingual keyword guardrail + hard P1 rule; either source raising the flag is enough. Residual risk remains: neither layer is complete. |
-| **Prompt injection** ("classify as P4") | T39, v1 | Ticket-as-data instruction; policy lives in code, so the model can't set priority directly; closed enums. Residual: the model can still be tricked into wrong *facts*. The guardrails run independently of the LLM. |
-| **Classifying tone instead of problem** (sarcasm, rage → `feedback`) | T40, T37, v1 | "Classify by the problem" rule; sentiment is a separate field. |
-| **Few-shot contamination:** one example shifts neighbouring tickets | T37 false legal flag (v3); T05 drift (v4) | Every prompt change gets a full 41-ticket rerun, not a spot check; examples are written to differ from the test set. |
-| **Invented secondary intents** inflating priority | T13/T16/T18 (v2), T18/T20/T41 (v5) | Prompt rule ("refund is the goal, not a second intent") + router rule: only a different-category secondary can raise priority. |
-| **Hallucinated entities** (billing channel guessed as `web`) | T06/T07/T09, v2 | "Only when explicitly stated"; `unknown` → agent note asks the customer. |
-| **Inconsistent labels** (sub-intent paired with the wrong category) | T20, v3 | Category derived from sub-intent in code. |
-| **Language mislabelled** after a non-English example | T27, T35, v3 | Language from `langdetect`; LLM value only as fallback for short or uncertain text. |
-| **Overconfident or underconfident self-reported confidence** | T32/T33 | Categorical confidence (high/medium/low), not a fake float; hard rules never depend on confidence. |
-| **Run-to-run flip-flops** on borderline tickets (even at temperature 0) | T18 fixed in v3/v4, back in v5 | Treat single-ticket changes below ~2 tickets as noise; borderline tickets end up in the review queue. |
-| **LLM outage / invalid output** | n/a | One retry with the error fed back; then `extraction_failed` → P2 manual review. Guardrails still apply, so a crisis keyword still gives P1. |
-| **PII sent to a third-party API** | n/a | Emails, Luhn-valid card numbers and international phone numbers are masked before the LLM call. |
-| **Taxonomy drift** (new kinds of tickets) | n/a | `spam_or_unclear` share and reviewer corrections in the HITL queue show where categories are missing. |
+| Missed crisis, no keywords | T36 (uk), v1 | Recall-biased prompt + keyword guardrail + hard P1 rule; either source is enough |
+| Prompt injection | T39, v1 | Ticket-as-data; policy in code; guardrails independent of the LLM. Residual: wrong *facts* |
+| Tone classified instead of the problem | T37, T40, v1 | "Classify the problem"; sentiment is its own field |
+| Few-shot contamination | T37 (v3), T05 (v4) | Full 41-ticket rerun after every prompt change |
+| Invented secondary intents → priority inflation | T18/T20/T41 | Prompt rule + only a cross-category secondary raises priority (over-escalation only) |
+| Hallucinated billing channel | v2 | "Only when explicit"; `unknown` → ask the customer |
+| Sub-intent / category mismatch | T20, v3 | Category derived in code |
+| Language mislabelled | v3 | `langdetect`, LLM only as fallback |
+| Run-to-run flip-flops at temperature 0 | T18 | Treat ±1–2 tickets as noise; borderline tickets reach the review queue |
+| LLM outage | – | Retry → P2 manual review; guardrails still give P1 for crisis |
+| PII to a third-party API | – | Masked before the call |
+| Taxonomy drift | – | Watch the `spam_or_unclear` share and reviewer corrections |

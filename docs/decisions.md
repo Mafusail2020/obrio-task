@@ -47,12 +47,12 @@ Which main parts of this project came from me, and which came from Claude and we
 
 | # | Decision | Type | Why |
 |---|---|---|---|
-| 13 | Close the Task 1 gaps against the evaluation criteria before starting Task 2 | Mine | |
-| 14 | Research what a support KB actually contains, and read every article before designing | Mine | |
-| 15 | Same repo and same Streamlit app, reusing the Task 1 classifier | Chosen by me | |
-| 16 | Retrieval: policies linked by sub-intent + multilingual embeddings with a threshold | Chosen by me | |
-| 17 | Never embed non-English ticket text; retrieve with the English summary | Mine | |
-| 18 | Billing channel as KB metadata + conditional tags + an agent override dropdown | Mine | |
-| 19 | Summary shown in the ticket's language and in English | Mine | |
-| 20 | All three tones from one LLM call; iterate the prompt if they collapse | Chosen by me | |
-| 21 | Show the design before writing code for a new part | Mine | |
+| 13 | Close the Task 1 gaps against the evaluation criteria before starting Task 2 | Mine | So nothing gets forgotten in the process |
+| 14 | Research what a support KB actually contains, and read every article before designing | Mine | You can't build something, without knowing what it needs |
+| 15 | Same repo and same Streamlit app, reusing the Task 1 classifier | Chosen by me | Reuse existing architecture, and more convenient |
+| 16 | Retrieval: policies linked by sub-intent + multilingual embeddings with a threshold | Chosen by me | Better RAG |
+| 17 | Never embed non-English ticket text; retrieve with the English summary | Mine | RAG in english KB works better with english |
+| 18 | Billing channel as KB metadata + conditional tags + an agent override dropdown | Mine | For used to get correct info depending on platform |
+| 19 | Summary shown in the ticket's language and in English | Mine | In case agent does not speak language ticket is in |
+| 20 | All three tones from one LLM call; iterate the prompt if they collapse | Chosen by me | Faste, more token saving |
+| 21 | Show the design before writing code for a new part | Mine | To check whether everything is going to be built as i imagine |
