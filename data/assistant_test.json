@@ -1,0 +1,436 @@
+{
+  "_schema": {
+    "kb_any": "at least one of these article ids must be retrieved",
+    "kb_forbidden": "none of these may be retrieved (wrong billing channel)",
+    "gate": "acceptable gate levels",
+    "drafts": "false = no drafts expected (crisis)",
+    "no_commitments": "true = drafts must not make policy promises (refund, credits, cancellation, account change), e.g. when the channel is unknown",
+    "channel_override": "billing channel set by the agent in the UI, or null"
+  },
+  "tickets": [
+    {
+      "id": "A01",
+      "source_ticket": "T09",
+      "text": "I cancelled my subscription on March 3rd and you still charged me $29.99 on March 10th. Please refund this charge.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "policy-refund-web",
+          "policy-refund-store",
+          "sop-duplicate-charge"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "red"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": true
+      },
+      "notes": "Channel unknown: drafts must ask where they paid, not apply a refund policy.",
+      "label_status": "draft"
+    },
+    {
+      "id": "A02",
+      "source_ticket": "T09",
+      "text": "I cancelled my subscription on March 3rd and you still charged me $29.99 on March 10th. Please refund this charge.",
+      "channel_override": "web",
+      "expected": {
+        "kb_any": [
+          "policy-refund-web"
+        ],
+        "kb_forbidden": [
+          "policy-refund-store",
+          "help-refund-app-store",
+          "help-refund-google-play"
+        ],
+        "gate": [
+          "red"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "Same ticket, agent set channel = website.",
+      "label_status": "draft"
+    },
+    {
+      "id": "A03",
+      "source_ticket": "T02",
+      "text": "How do I cancel my subscription? I subscribed through the App Store on my iPhone.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "help-cancel-app-store"
+        ],
+        "kb_forbidden": [
+          "help-cancel-web",
+          "help-cancel-google-play",
+          "sop-cancel-web-subscription"
+        ],
+        "gate": [
+          "green",
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A04",
+      "source_ticket": "T05",
+      "text": "Hello, I accidentally bought the yearly plan on Google Play yesterday, I meant to pick the monthly one. Can I get a refund?",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "help-refund-google-play",
+          "policy-refund-store"
+        ],
+        "kb_forbidden": [
+          "policy-refund-web",
+          "help-refund-app-store"
+        ],
+        "gate": [
+          "green",
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A05",
+      "source_ticket": "T12",
+      "text": "Hallo, ich habe gestern aus Versehen ein Jahresabo über eure Webseite gekauft (59,99 €). Ich möchte bitte mein Geld zurück.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "policy-refund-web"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "red"
+        ],
+        "drafts": true,
+        "language": "de",
+        "no_commitments": false
+      },
+      "notes": "German, website purchase.",
+      "label_status": "draft"
+    },
+    {
+      "id": "A06",
+      "source_ticket": "T13",
+      "text": "The psychic Luna took 3-4 minutes to answer every message while my credits were running down. I spent 30 credits and got maybe 5 sentences. I want my credits back.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "policy-credits"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A07",
+      "source_ticket": "T18",
+      "text": "El asesor tardaba muchísimo en responder y se me acabaron los créditos sin obtener ninguna respuesta clara. Quiero que me devuelvan mis créditos.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "policy-credits"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "es",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A08",
+      "source_ticket": "T17",
+      "text": "An advisor asked me to send him money directly via PayPal for a special 'curse removal' ritual and gave me his WhatsApp number. Is this allowed??",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "policy-advisor-conduct",
+          "sop-advisor-investigation"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "red"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A09",
+      "source_ticket": "T19",
+      "text": "The app crashes every time I open it since the last update. iPhone 13, iOS 18.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "ts-app-crash"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "green",
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A10",
+      "source_ticket": "T23",
+      "text": "Додаток вилітає щоразу, коли я відкриваю чат з астрологом. Перевстановлювала двічі — не допомогло. Samsung A52.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "ts-app-crash"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "green",
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "uk",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A11",
+      "source_ticket": "T20",
+      "text": "The 'My Plan' screen is just a white page, it never loads. I want to check when my subscription renews.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "ts-my-plan-not-loading"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "green",
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A12",
+      "source_ticket": "T21",
+      "text": "How do I turn off the daily horoscope notifications? I get 5 a day.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "help-notifications"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "green"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A13",
+      "source_ticket": "T29",
+      "text": "I got a new phone and now I can't log in. The app says 'account not found' when I use Google sign-in. I have 120 credits on that account!",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "ts-login-account-not-found",
+          "sop-identity-verification"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "red"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A14",
+      "source_ticket": "T28",
+      "text": "Удалите, пожалуйста, мой аккаунт и все мои данные. Больше не хочу пользоваться приложением.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "policy-data-deletion"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "red"
+        ],
+        "drafts": true,
+        "language": "ru",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A15",
+      "source_ticket": "T30",
+      "text": "How does the compatibility report work? Do I need my partner's exact birth time?",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "help-compatibility-report"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "green"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A16",
+      "source_ticket": "T35",
+      "text": "My psychic told me my relationship is doomed and honestly I don't see the point anymore. I don't want to live like this.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "sop-crisis-protocol"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "red"
+        ],
+        "drafts": false,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "Crisis: no drafts.",
+      "label_status": "draft"
+    },
+    {
+      "id": "A17",
+      "source_ticket": "T10",
+      "text": "You've charged me twice for the same month. If this isn't refunded in 48 hours I'm filing a chargeback with my bank.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "sop-chargeback-handling",
+          "policy-refund-web"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "red"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A18",
+      "source_ticket": "T07",
+      "text": "I paid for the soulmate sketch 5 days ago (order #NB-58213) and still haven't received anything. The app just keeps offering me to chat with a psychic instead.",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "sop-missing-content"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "green",
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A19",
+      "source_ticket": "T06",
+      "text": "I bought the 50 credits pack and the offer said I'd get 10 bonus credits, but I only got 50. Where are my bonus credits?",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "policy-credits",
+          "help-how-credits-work"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "",
+      "label_status": "draft"
+    },
+    {
+      "id": "A20",
+      "source_ticket": "T33",
+      "text": "hi it doesnt work",
+      "channel_override": null,
+      "expected": {
+        "kb_any": [
+          "macro-request-more-info"
+        ],
+        "kb_forbidden": [],
+        "gate": [
+          "yellow"
+        ],
+        "drafts": true,
+        "language": "en",
+        "no_commitments": false
+      },
+      "notes": "Vague ticket: drafts should ask for details.",
+      "label_status": "draft"
+    }
+  ]
+}

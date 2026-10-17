@@ -1,0 +1,153 @@
+"""Evaluate the reply assistant on data/assistant_test.json.
+
+    python -m evaluation.run_assistant_eval --provider ollama --model llama3.1 --prompt v1
+    python -m evaluation.run_assistant_eval --ids A01,A02 --report     # also writes docs/ASSISTANT_EVAL_REPORT.md
+
+Automatic checks only. Quality ratings (appropriate / too general / inappropriate)
+are added by hand or by an LLM judge on top of the saved results.
+"""
+
+import argparse
+import json
+import time
+from datetime import datetime
+from typing import Optional
+
+from assistant.embeddings import OllamaEmbedder, VectorIndex
+from assistant.generator import ASSISTANT_PROMPTS_DIR
+from assistant.kb import load_kb
+from assistant.pipeline import assist
+from assistant.schema import AssistResult, Tone
+from assistant.validator import policy_promises
+from classifier.config import DATA_DIR, RESULTS_DIR, ROOT, settings
+from classifier.llm import get_client
+from classifier.prompts import resolve_version
+
+TEST_SET = DATA_DIR / "assistant_test.json"
+OUT_DIR = RESULTS_DIR / "assistant"
+CHECKS = ("retrieval_hit", "retrieval_clean", "gate", "drafts", "tones", "language", "valid",
+          "no_commitments", "distinct", "length")
+
+
+def score(case: dict, r: AssistResult) -> dict:
+    exp = case["expected"]
+    ids = {s.id for s in r.sources}
+    s: dict[str, Optional[bool]] = {c: None for c in CHECKS}
+    s["retrieval_hit"] = bool(ids & set(exp["kb_any"]))
+    s["retrieval_clean"] = not (ids & set(exp["kb_forbidden"])) if exp["kb_forbidden"] else None
+    s["gate"] = r.gate.level.value in exp["gate"]
+    s["drafts"] = (r.drafts is not None) == exp["drafts"]
+    if exp["drafts"] and r.drafts is not None:
+        msgs = [i.message for i in r.issues]
+        s["tones"] = sorted(d.tone.value for d in r.drafts.drafts) == sorted(t.value for t in Tone)
+        s["language"] = not any("written in" in m for m in msgs)
+        s["valid"] = not any(i.severity == "error" for i in r.issues)
+        if exp["no_commitments"]:
+            s["no_commitments"] = all(not policy_promises(d.commitments) for d in r.drafts.drafts)
+        s["distinct"] = not any("too similar" in m for m in msgs)
+        s["length"] = not any("limit is" in m or "sentences (max" in m for m in msgs)
+    return s
+
+
+def passed(scores: dict) -> bool:
+    return all(v is not False for v in scores.values())
+
+
+def run(client, index: VectorIndex, prompt_version: str, ids: Optional[list[str]] = None, progress=None) -> dict:
+    version = resolve_version(prompt_version, ASSISTANT_PROMPTS_DIR)
+    cases = [c for c in json.loads(TEST_SET.read_text(encoding="utf-8"))["tickets"] if not ids or c["id"] in ids]
+    rows, started = [], time.perf_counter()
+    for n, case in enumerate(cases, 1):
+        r = assist(case["text"], client, index, version, channel_override=case["channel_override"])
+        s = score(case, r)
+        rows.append({"id": case["id"], "text": case["text"], "channel_override": case["channel_override"],
+                     "expected": case["expected"], "result": r.model_dump(mode="json"), "scores": s,
+                     "pass": passed(s), "latency_ms": r.meta.latency_ms,
+                     "input_tokens": r.meta.input_tokens, "output_tokens": r.meta.output_tokens})
+        if progress:
+            progress(n, len(cases), rows[-1])
+    summary = {c: {"correct": sum(1 for x in rows if x["scores"][c]), "total": sum(1 for x in rows if x["scores"][c] is not None)}
+               for c in CHECKS}
+    lat = [x["latency_ms"] for x in rows if x["latency_ms"]]
+    tin = [x["input_tokens"] for x in rows if x["input_tokens"]]
+    tout = [x["output_tokens"] for x in rows if x["output_tokens"]]
+    return {
+        "run": {"timestamp": datetime.now().isoformat(timespec="seconds"), "provider": client.provider,
+                "model": client.model, "prompt_version": version, "embedder": index.embedder.model,
+                "n_tickets": len(rows), "wall_time_s": round(time.perf_counter() - started, 1)},
+        "summary": {"checks": summary, "passed": sum(x["pass"] for x in rows),
+                    "avg_generation_latency_ms": round(sum(lat) / len(lat)) if lat else None,
+                    "avg_input_tokens": round(sum(tin) / len(tin)) if tin else None,
+                    "avg_output_tokens": round(sum(tout) / len(tout)) if tout else None},
+        "rows": rows,
+    }
+
+
+def save(report: dict) -> str:
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    r = report["run"]
+    stamp = r["timestamp"].replace(":", "").replace("-", "")
+    path = OUT_DIR / f"{r['prompt_version']}_{r['provider']}_{r['model'].replace(':', '_')}_{stamp}.json"
+    path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    return str(path)
+
+
+def markdown_report(report: dict, source: str) -> str:
+    r, rows = report["run"], report["rows"]
+    out = ["# Reply assistant: evaluation report", "",
+           f"Generated by `python -m evaluation.run_assistant_eval --report` from `{source}`.", "",
+           f"**Run:** {r['provider']}/{r['model']} · drafts prompt {r['prompt_version']} · embeddings {r['embedder']} · {r['n_tickets']} tickets", "",
+           f"**Passed all automatic checks: {report['summary']['passed']}/{len(rows)}**", "",
+           "| Check | Correct |", "|---|---|"]
+    for c in CHECKS:
+        t = report["summary"]["checks"][c]
+        if t["total"]:
+            out.append(f"| {c} | {t['correct']}/{t['total']} |")
+    out += ["", "| ID | Ticket | Channel | Expected KB (any) | Retrieved | Gate exp/got | Failed checks | Result |",
+            "|---|---|---|---|---|---|---|---|"]
+    for x in rows:
+        res = x["result"]
+        got = ", ".join(s["id"] for s in res["sources"]) or "-"
+        fails = ", ".join(c for c, v in x["scores"].items() if v is False) or "-"
+        text = " ".join(x["text"].split())[:60].replace("|", "\\|")
+        out.append(f"| {x['id']} | {text}… | {res['meta']['channel']} | {', '.join(x['expected']['kb_any'])} | {got} "
+                   f"| {'/'.join(x['expected']['gate'])} / {res['gate']['level']} | {fails} | {'✅' if x['pass'] else '❌'} |")
+    return "\n".join(out) + "\n"
+
+
+def main() -> None:
+    p = argparse.ArgumentParser()
+    p.add_argument("--provider", default=None)
+    p.add_argument("--model", default=None)
+    p.add_argument("--prompt", default="latest")
+    p.add_argument("--embed-model", default=settings.embed_model)
+    p.add_argument("--ids", default=None)
+    p.add_argument("--report", action="store_true", help="also write docs/ASSISTANT_EVAL_REPORT.md")
+    a = p.parse_args()
+
+    client = get_client(a.provider, a.model)
+    index = VectorIndex(load_kb(), OllamaEmbedder(a.embed_model, host=settings.ollama_host))
+
+    def progress(n, total, row):
+        fails = [c for c, v in row["scores"].items() if v is False]
+        print(f"[{n:>2}/{total}] {row['id']} {'OK ' if row['pass'] else 'MIS'} {' '.join(fails)}", flush=True)
+
+    report = run(client, index, a.prompt, a.ids.split(",") if a.ids else None, progress)
+    path = save(report)
+    s = report["summary"]
+    print(f"\n{report['run']['provider']}/{report['run']['model']} drafts prompt={report['run']['prompt_version']}: "
+          f"passed {s['passed']}/{report['run']['n_tickets']}")
+    for c in CHECKS:
+        t = s["checks"][c]
+        if t["total"]:
+            print(f"  {c:<16} {t['correct']:>2}/{t['total']}")
+    print(f"  avg generation latency {s['avg_generation_latency_ms']} ms · tokens {s['avg_input_tokens']}/{s['avg_output_tokens']}")
+    print(f"Saved: {path}")
+    if a.report:
+        out = ROOT / "docs" / "ASSISTANT_EVAL_REPORT.md"
+        out.write_text(markdown_report(report, path.split("/")[-1]), encoding="utf-8")
+        print(f"Wrote {out}")
+
+
+if __name__ == "__main__":
+    main()

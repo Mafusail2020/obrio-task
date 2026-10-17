@@ -5,3 +5,5 @@ __pycache__/
 .env
 data/review_queue.jsonl
 .DS_Store
+data/assistant_feedback.jsonl
+data/kb_embeddings_cache.json

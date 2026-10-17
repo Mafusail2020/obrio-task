@@ -21,6 +21,7 @@ class Settings:
     claude_effort: str = os.getenv("CLAUDE_EFFORT", "low")
     llm_fallback_provider: str = os.getenv("LLM_FALLBACK_PROVIDER", "")  # "", "ollama" or "claude"
     prompt_version: str = os.getenv("PROMPT_VERSION", "latest")
+    embed_model: str = os.getenv("EMBED_MODEL", "qwen3-embedding")
     llm_timeout_s: float = float(os.getenv("LLM_TIMEOUT_S", "120"))
     max_ticket_chars: int = int(os.getenv("MAX_TICKET_CHARS", "4000"))
 

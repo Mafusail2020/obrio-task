@@ -1,4 +1,5 @@
-"""Streamlit UI: classify tickets, run/compare evals, work the human review queue.
+"""Streamlit UI: classify tickets, run/compare evals, work the human review queue,
+and draft replies with the reply assistant (Task 2).
 
 Run: streamlit run app.py
 """
@@ -13,6 +14,8 @@ from classifier import review_queue
 from classifier.config import RESULTS_DIR, settings
 from classifier.llm import PROVIDERS, LLMClient, get_client_with_fallback
 from classifier.pipeline import classify
+from assistant import ui as assistant_ui
+from assistant.generator import ASSISTANT_PROMPTS_DIR
 from classifier.prompts import list_versions
 from classifier.schema import TriageResult
 from classifier.taxonomy import SUBINTENT_CATEGORY, Action, Priority, SubIntent
@@ -42,13 +45,17 @@ with st.sidebar:
     default_fb = settings.llm_fallback_provider if settings.llm_fallback_provider in fallback_options else "none"
     fallback = st.selectbox("Fallback provider (if primary is down)", fallback_options,
                             index=fallback_options.index(default_fb))
+    st.header("Reply assistant")
+    as_versions = list_versions(ASSISTANT_PROMPTS_DIR)
+    assistant_prompt = st.selectbox("Drafts prompt version", as_versions, index=len(as_versions) - 1)
+    embed_model = st.text_input("Embedding model (Ollama)", value=settings.embed_model)
     if provider == "claude" and not os.getenv("ANTHROPIC_API_KEY"):
         st.warning("ANTHROPIC_API_KEY is not set. Add it to .env (or use `ant auth login`).")
     st.caption("The LLM only extracts facts. Priority, queue and escalation come from "
                "deterministic rules in `classifier/router.py`.")
 
 client = cached_client(provider, model, fallback)
-tab_classify, tab_eval, tab_review = st.tabs(["Classify", "Evaluation", "Review queue"])
+tab_classify, tab_eval, tab_review, tab_assist = st.tabs(["Classify", "Evaluation", "Review queue", "Reply assistant"])
 
 
 # ---------- classify ----------
@@ -243,3 +250,9 @@ with tab_review:
             "corrections": json.dumps(i["review"]["corrections"]) if i["review"]["corrections"] else "",
             "note": i["review"]["note"],
         } for i in done]), hide_index=True, width="stretch")
+
+
+# ---------- reply assistant ----------
+
+with tab_assist:
+    assistant_ui.render(client, assistant_prompt, prompt_version, embed_model, load_test_set())

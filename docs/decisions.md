@@ -40,3 +40,19 @@ Which main parts of this project came from me, and which came from Claude and we
 | A3 | Intent taxonomy spans several dimensions | Separate fields: topic, goal, sentiment, risk flags, language, entities |
 | A4 | Pipeline with confidence thresholding → human review below threshold | `confidence` + `needs_human` rule |
 | A5 | Design the taxonomy from the data, not the org chart | Categories derived from real user complaints |
+
+---
+
+# Task 2: Reply assistant
+
+| # | Decision | Type | Why |
+|---|---|---|---|
+| 13 | Close the Task 1 gaps against the evaluation criteria before starting Task 2 | Mine | |
+| 14 | Research what a support KB actually contains, and read every article before designing | Mine | |
+| 15 | Same repo and same Streamlit app, reusing the Task 1 classifier | Chosen by me | |
+| 16 | Retrieval: policies linked by sub-intent + multilingual embeddings with a threshold | Chosen by me | |
+| 17 | Never embed non-English ticket text; retrieve with the English summary | Mine | |
+| 18 | Billing channel as KB metadata + conditional tags + an agent override dropdown | Mine | |
+| 19 | Summary shown in the ticket's language and in English | Mine | |
+| 20 | All three tones from one LLM call; iterate the prompt if they collapse | Chosen by me | |
+| 21 | Show the design before writing code for a new part | Mine | |
