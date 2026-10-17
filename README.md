@@ -19,6 +19,18 @@ cp .env.example .env          # set LLM_PROVIDER, and ANTHROPIC_API_KEY for Clau
 ollama pull llama3.1          # for local runs
 ```
 
+## Quick try (no evals needed)
+
+You don't have to run any evaluation to see both parts working. The eval runs (tens of minutes to hours on local models) are only for measuring quality; the results are already saved in `evaluation/results/` and summarised in `docs/`.
+
+```bash
+ollama pull llama3.1 && ollama pull qwen3-embedding   # once
+.venv/bin/streamlit run app.py
+```
+- **Classifier:** **Classify** tab → pick an example ticket or paste your own → *Classify* (~10 s).
+- **Reply assistant:** **Reply assistant** tab → pick an example → *Get drafts* (~1–2 min locally; the first run also embeds the KB, ~30 s).
+- **Without any model:** `.venv/bin/python -m pytest -q` runs the full pipeline with a mock LLM in a few seconds.
+
 ## Run
 
 ```bash
