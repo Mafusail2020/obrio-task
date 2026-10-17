@@ -26,10 +26,18 @@ def classify(text: str, client: LLMClient, prompt_version: str = "latest",
         meta.latency_ms = run.response.latency_ms
         meta.input_tokens = run.response.input_tokens
         meta.output_tokens = run.response.output_tokens
+        meta.cache_read_tokens = run.response.cache_read_tokens
+        meta.cache_write_tokens = run.response.cache_write_tokens
         meta.warnings += run.warnings
+        used = getattr(client, "last_used", None)  # FallbackClient: record who actually answered
+        if used is not None:
+            meta.provider, meta.model = used.provider, used.model
+            if used is not client.clients[0]:
+                meta.warnings.append(f"primary provider failed; answered by fallback {used.provider}/{used.model}")
     except ExtractionError as e:
         error = str(e)
         meta.attempts = e.attempts
+        meta.error_kind = e.kind
 
     if extraction is not None:
         detected = language.detect(pre.text)

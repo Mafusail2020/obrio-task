@@ -26,6 +26,8 @@ ollama pull llama3.1          # for local runs
 .venv/bin/python -m evaluation.run_eval --provider ollama --prompt v5     # eval on 41 test tickets
 .venv/bin/python -m evaluation.run_eval --provider claude --ids T36,T39   # subset on Claude
 .venv/bin/python -m pytest -q                                             # unit tests (no LLM needed)
+.venv/bin/python -m evaluation.report tickets --prompt v5                 # regenerate docs/EVAL_REPORT.md
+.venv/bin/python -m evaluation.report compare --prompt v5                 # model comparison table
 ```
 
 ## Layout
@@ -51,6 +53,9 @@ ollama pull llama3.1          # for local runs
 | [docs/AUTOMATION_LIMITS.md](docs/AUTOMATION_LIMITS.md) | Which tickets must not be automated, human-in-the-loop review queue |
 | [docs/PROMPT_EVOLUTION.md](docs/PROMPT_EVOLUTION.md) | v1 → v5 with eval numbers |
 | [docs/EDGE_CASES.md](docs/EDGE_CASES.md) | Unexpected AI results and what was done |
+| [docs/EVAL_REPORT.md](docs/EVAL_REPORT.md) | Per-ticket input → expected → actual → pass/fail table, accuracy, failures (generated) |
+| [docs/FAILURE_HANDLING.md](docs/FAILURE_HANDLING.md) | Invalid JSON, timeouts, rate limits, fallback provider, degraded mode |
+| [docs/COST_AND_CACHING.md](docs/COST_AND_CACHING.md) | Cost per ticket, 10k/month forecast, optimisations, what to cache and why |
 | [docs/decisions.md](docs/decisions.md) | My decisions vs AI proposals |
 
 Final eval (prompt v5, llama3.1 8B, 41 tickets): category 100%, sub-intent 97%, needs_human 100%, priority 93% (all misses over-prioritised), all risk flags caught, no false flags.

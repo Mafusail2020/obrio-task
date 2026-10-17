@@ -33,5 +33,5 @@ class MockClient(LLMClient):
         try:
             parsed = schema.model_validate_json(raw)
         except ValidationError as e:
-            raise LLMError(f"Mock output does not match schema: {e}") from e
+            raise LLMError(f"Mock output does not match schema: {e}", kind="invalid_output") from e
         return LLMResponse(parsed=parsed, raw_text=raw, model=self.model, latency_ms=0.0)

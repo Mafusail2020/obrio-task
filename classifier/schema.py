@@ -100,7 +100,10 @@ class RunMeta(BaseModel):
     latency_ms: Optional[float] = None
     input_tokens: Optional[int] = None
     output_tokens: Optional[int] = None
+    cache_read_tokens: Optional[int] = None
+    cache_write_tokens: Optional[int] = None
     attempts: int = 0
+    error_kind: Optional[str] = None  # invalid_output | transient | fatal
     language_source: Optional[str] = None  # "detector" or "llm"
     warnings: list[str] = Field(default_factory=list)
 

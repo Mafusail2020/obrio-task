@@ -1,5 +1,6 @@
 import time
 
+import httpx
 import ollama
 from pydantic import ValidationError
 
@@ -27,15 +28,21 @@ class OllamaClient(LLMClient):
                 format=schema.model_json_schema(),
                 options={"temperature": 0},
             )
-        except (ollama.ResponseError, ConnectionError, OSError) as e:
-            raise LLMError(f"Ollama request failed: {e}") from e
+        except httpx.TimeoutException as e:
+            raise LLMError(f"Ollama timed out after {self.timeout_s:.0f}s", kind="transient") from e
+        except ollama.ResponseError as e:
+            # 404 = model not pulled: retrying won't help
+            kind = "fatal" if e.status_code == 404 else "transient"
+            raise LLMError(f"Ollama error {e.status_code}: {e.error}", kind=kind) from e
+        except (ConnectionError, OSError, httpx.HTTPError) as e:
+            raise LLMError(f"Ollama unreachable: {e}", kind="transient") from e
         latency_ms = (time.perf_counter() - start) * 1000
 
         raw = response.message.content or ""
         try:
             parsed = schema.model_validate_json(raw)
         except ValidationError as e:
-            raise LLMError(f"Ollama output does not match schema: {e}") from e
+            raise LLMError(f"Ollama output does not match schema: {e}", kind="invalid_output") from e
 
         return LLMResponse(
             parsed=parsed,

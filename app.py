@@ -11,7 +11,7 @@ import streamlit as st
 
 from classifier import review_queue
 from classifier.config import RESULTS_DIR, settings
-from classifier.llm import PROVIDERS, LLMClient, get_client
+from classifier.llm import PROVIDERS, LLMClient, get_client_with_fallback
 from classifier.pipeline import classify
 from classifier.prompts import list_versions
 from classifier.schema import TriageResult
@@ -25,8 +25,8 @@ PRIORITY_COLORS = {"P1": "red", "P2": "orange", "P3": "blue", "P4": "gray"}
 
 
 @st.cache_resource(show_spinner=False)
-def cached_client(provider: str, model: str) -> LLMClient:
-    return get_client(provider, model)
+def cached_client(provider: str, model: str, fallback: str) -> LLMClient:
+    return get_client_with_fallback(provider, model, fallback_provider=fallback)
 
 
 # ---------- sidebar ----------
@@ -38,12 +38,16 @@ with st.sidebar:
     model = st.text_input("Model", value=settings.default_model(provider), key=f"model_{provider}")
     versions = list_versions()
     prompt_version = st.selectbox("Prompt version", versions, index=len(versions) - 1)
+    fallback_options = ["none"] + [p for p in PROVIDERS if p != provider]
+    default_fb = settings.llm_fallback_provider if settings.llm_fallback_provider in fallback_options else "none"
+    fallback = st.selectbox("Fallback provider (if primary is down)", fallback_options,
+                            index=fallback_options.index(default_fb))
     if provider == "claude" and not os.getenv("ANTHROPIC_API_KEY"):
         st.warning("ANTHROPIC_API_KEY is not set. Add it to .env (or use `ant auth login`).")
     st.caption("The LLM only extracts facts. Priority, queue and escalation come from "
                "deterministic rules in `classifier/router.py`.")
 
-client = cached_client(provider, model)
+client = cached_client(provider, model, fallback)
 tab_classify, tab_eval, tab_review = st.tabs(["Classify", "Evaluation", "Review queue"])
 
 
